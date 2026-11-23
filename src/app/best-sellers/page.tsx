@@ -1,6 +1,7 @@
 import { CatalogPage } from "@/components/product/catalog-page";
-import { catalogProducts } from "@/features/products/mock-products";
+import { getCatalogProducts } from "@/services/products-service";
 
-export default function BestSellersPage() {
-  return <CatalogPage title="Best sellers" eyebrow="Most desired" products={catalogProducts.filter((product) => product.bestSeller)} />;
+export default async function BestSellersPage() {
+  const catalog = await getCatalogProducts();
+  return <CatalogPage title="Best sellers" eyebrow="Most desired" products={catalog.products.filter((product) => product.bestSeller)} isDemo={catalog.isDemo} />;
 }

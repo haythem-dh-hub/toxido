@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { ProductGrid } from "@/components/product/product-grid";
 import type { Product } from "@/types/product";
+import { CatalogDataNotice } from "@/components/product/catalog-data-notice";
 
-export function CatalogPage({ title, eyebrow, products, emptyMessage }: { title: string; eyebrow: string; products: Product[]; emptyMessage?: string }) {
+export function CatalogPage({ title, eyebrow, products, emptyMessage, isDemo = false }: { title: string; eyebrow: string; products: Product[]; emptyMessage?: string; isDemo?: boolean }) {
   return (
     <section className="section-space page-gutter bg-ink">
       <div className="site-container">
         <div className="mb-10">
           <p className="type-eyebrow text-gold">{eyebrow}</p>
           <h1 className="type-heading mt-5 max-w-3xl text-ivory">{title}</h1>
+          <CatalogDataNotice isDemo={isDemo} />
         </div>
         {products.length ? <ProductGrid products={products} /> : (
           <div className="border border-gold-muted/50 bg-charcoal p-10 text-center">

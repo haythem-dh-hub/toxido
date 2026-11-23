@@ -6,35 +6,23 @@ import { FragranceFinderPreview } from "@/components/home/fragrance-finder-previ
 import { HomeHero } from "@/components/home/home-hero";
 import { NewsletterSection } from "@/components/home/newsletter-section";
 import { WhyToxido } from "@/components/home/why-toxido";
-import { ProductGrid } from "@/components/product/product-grid";
-import { fragranceProducts } from "@/features/products/mock-products";
 import { FragrancesSignatures } from "@/components/home/fragrances-signatures";
-export default function HomePage() {
+import { getCatalogProducts } from "@/services/products-service";
+import { CatalogDataNotice } from "@/components/product/catalog-data-notice";
+
+export default async function HomePage() {
+  const catalog = await getCatalogProducts();
+  const fragrances = catalog.products.filter((product) => product.category === "fragrance");
   return (
     <>
       <HomeHero />
-      <FragrancesSignatures/>
-      {/* <section className="section-space page-gutter bg-ink">
-        <div className="site-container">
-          <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-            <div className="max-w-3xl">
-              <p className="type-eyebrow text-gold">The TOXIDO edit</p>
-              <h2 className="type-heading mt-4 text-ivory">Fragrance signatures</h2>
-            </div>
-            <a className="inline-flex min-h-11 items-center justify-center border border-gold-muted px-5 text-[0.6875rem] font-bold uppercase tracking-[0.16em] text-gold transition-colors duration-300 hover:border-gold hover:bg-gold hover:text-ink" href="/fragrances">
-              View all
-            </a>
-          </div>
-          <ProductGrid products={fragranceProducts} />
-        </div>
-      </section> */}
-
-
-      <FeaturedCollections />
-      <BestSellersSection />
+      {catalog.isDemo ? <div className="page-gutter bg-ink"><div className="site-container"><CatalogDataNotice isDemo /></div></div> : null}
+      {fragrances.length ? <FragrancesSignatures products={fragrances} /> : null}
+      {catalog.products.length ? <FeaturedCollections /> : null}
+      {fragrances.some((product) => product.bestSeller) ? <BestSellersSection products={fragrances} /> : null}
       <BrandPhilosophy />
-      <FragranceFinderPreview />
-      <AccessoriesShowcase />
+      {fragrances.length ? <FragranceFinderPreview products={fragrances} /> : null}
+      {catalog.products.some((product) => product.category === "accessory") ? <AccessoriesShowcase /> : null}
       <WhyToxido />
       <NewsletterSection />
     </>

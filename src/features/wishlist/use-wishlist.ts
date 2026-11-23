@@ -1,7 +1,7 @@
 import { useCommerce } from "@/features/cart/commerce-provider";
 
 export function useWishlist() {
-  const { wishlist: items, toggleWishlist: toggleItem } = useCommerce();
+  const { wishlist: items, toggleWishlist: toggleItem, products, catalogIsDemo } = useCommerce();
   const isSaved = (productSlug: string) => items.includes(productSlug);
-  return { items, toggleItem, isSaved };
+  return { items, toggleItem, isSaved, products, catalogIsDemo };
 }

@@ -1,14 +1,10 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { footerNavigation } from "@/components/layout/navigation-data";
-
-const socialLinks = [
-  { href: "https://instagram.com", label: "Instagram" },
-  { href: "https://tiktok.com", label: "TikTok" },
-  { href: "https://linkedin.com", label: "LinkedIn" },
-] as const;
+import { normalizeWhatsAppNumber } from "@/lib/supabase-server";
 
 export function SiteFooter() {
+  const whatsappNumber = normalizeWhatsAppNumber();
   return (
     <footer className="border-t border-smoke bg-charcoal">
       <div className="page-gutter">
@@ -35,13 +31,7 @@ export function SiteFooter() {
           </div>
           <div className="flex flex-col gap-7 pt-7 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-lg font-semibold tracking-[0.2em] text-ivory" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>TOXIDO</p>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-              {socialLinks.map(({ href, label }) => (
-                <a key={label} href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-silver transition-colors hover:text-ivory">
-                  {label}<ArrowUpRight aria-hidden="true" size={13} strokeWidth={1.5} />
-                </a>
-              ))}
-            </div>
+            {whatsappNumber ? <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-silver transition-colors hover:text-gold">WhatsApp contact<ArrowUpRight aria-hidden="true" size={13} strokeWidth={1.5} /></a> : null}
             <p className="text-xs text-muted">© {new Date().getFullYear()} TOXIDO.</p>
           </div>
         </div>

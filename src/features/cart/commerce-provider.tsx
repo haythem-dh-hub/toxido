@@ -1,13 +1,17 @@
 "use client";
 
 import { createContext, useContext, useSyncExternalStore, type ReactNode } from "react";
+import type { Product, ProductVariant } from "@/types/product";
+import { addVariantToCart, normalizeCartItems, removeVariantFromCart, setVariantCartQuantity, type CartItem } from "@/features/cart/cart-utils";
 
-export type CartItem = { productSlug: string; quantity: number };
+export type { CartItem } from "@/features/cart/cart-utils";
 type Snapshot = { cart: CartItem[]; wishlist: string[] };
 type CommerceState = Snapshot & {
-  addItem: (slug: string) => void;
-  updateQuantity: (slug: string, quantity: number) => void;
-  removeItem: (slug: string) => void;
+  products: Product[];
+  catalogIsDemo: boolean;
+  addItem: (slug: string, variant: ProductVariant) => void;
+  updateQuantity: (slug: string, variant: ProductVariant, quantity: number) => void;
+  removeItem: (slug: string, variantId: string) => void;
   toggleWishlist: (slug: string) => void;
 };
 
@@ -16,10 +20,10 @@ const listeners = new Set<() => void>();
 const readStorage = (): Snapshot => {
   if (typeof window === "undefined") return emptySnapshot;
   try {
-    const cart = JSON.parse(localStorage.getItem("toxido-cart") ?? "[]") as CartItem[];
+    const cart = normalizeCartItems(JSON.parse(localStorage.getItem("toxido-cart") ?? "[]"));
     const wishlist = JSON.parse(localStorage.getItem("toxido-wishlist") ?? "[]") as string[];
     return {
-      cart: Array.isArray(cart) ? cart.filter((item) => typeof item.productSlug === "string" && Number.isInteger(item.quantity) && item.quantity > 0) : [],
+      cart,
       wishlist: Array.isArray(wishlist) ? wishlist.filter((slug): slug is string => typeof slug === "string") : [],
     };
   } catch {
@@ -45,27 +49,26 @@ const update = (next: Snapshot) => {
   listeners.forEach((listener) => listener());
 };
 
-const commerceActions = {
-  addItem: (slug: string) => {
-    const existing = snapshot.cart.find((item) => item.productSlug === slug);
-    update({ ...snapshot, cart: existing
-      ? snapshot.cart.map((item) => item.productSlug === slug ? { ...item, quantity: item.quantity + 1 } : item)
-      : [...snapshot.cart, { productSlug: slug, quantity: 1 }] });
-  },
-  updateQuantity: (slug: string, quantity: number) => update({ ...snapshot, cart: quantity < 1
-    ? snapshot.cart.filter((item) => item.productSlug !== slug)
-    : snapshot.cart.map((item) => item.productSlug === slug ? { ...item, quantity } : item) }),
-  removeItem: (slug: string) => update({ ...snapshot, cart: snapshot.cart.filter((item) => item.productSlug !== slug) }),
-  toggleWishlist: (slug: string) => update({ ...snapshot, wishlist: snapshot.wishlist.includes(slug)
-    ? snapshot.wishlist.filter((item) => item !== slug)
-    : [...snapshot.wishlist, slug] }),
-};
-
 const CommerceContext = createContext<CommerceState | null>(null);
 
-export function CommerceProvider({ children }: { children: ReactNode }) {
+export function CommerceProvider({ children, products, catalogIsDemo }: { children: ReactNode; products: Product[]; catalogIsDemo: boolean }) {
   const state = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  return <CommerceContext.Provider value={{ ...state, ...commerceActions }}>{children}</CommerceContext.Provider>;
+  const addItem = (slug: string, variant: ProductVariant) => {
+    const defaultVariantId = products.find((product) => product.slug === slug)?.variants[0]?.id;
+    update({ ...snapshot, cart: addVariantToCart(snapshot.cart, slug, variant, defaultVariantId) });
+  };
+  const updateQuantity = (slug: string, variant: ProductVariant, quantity: number) => {
+    const defaultVariantId = products.find((product) => product.slug === slug)?.variants[0]?.id;
+    update({ ...snapshot, cart: setVariantCartQuantity(snapshot.cart, slug, variant, quantity, defaultVariantId) });
+  };
+  const removeItem = (slug: string, variantId: string) => {
+    const defaultVariantId = products.find((product) => product.slug === slug)?.variants[0]?.id;
+    update({ ...snapshot, cart: removeVariantFromCart(snapshot.cart, slug, variantId, defaultVariantId) });
+  };
+  const toggleWishlist = (slug: string) => update({ ...snapshot, wishlist: snapshot.wishlist.includes(slug)
+    ? snapshot.wishlist.filter((item) => item !== slug)
+    : [...snapshot.wishlist, slug] });
+  return <CommerceContext.Provider value={{ ...state, addItem, updateQuantity, removeItem, toggleWishlist, products, catalogIsDemo }}>{children}</CommerceContext.Provider>;
 }
 
 export function useCommerce() {

@@ -6,12 +6,12 @@ import { Reveal } from "@/components/home/reveal";
 import { Button } from "@/components/ui/button";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { useCart } from "@/features/cart/use-cart";
-import { fragranceProducts } from "@/features/products/mock-products";
+import type { Product } from "@/types/product";
 import { formatMoney } from "@/lib/format-money";
 
-export function BestSellersSection() {
+export function BestSellersSection({ products }: { products: Product[] }) {
   const { addItem } = useCart();
-  const bestSellers = fragranceProducts.filter((product) => product.bestSeller);
+  const bestSellers = products.filter((product) => product.bestSeller);
 
   return (
     <section className="section-space page-gutter border-y border-smoke bg-charcoal">
@@ -33,7 +33,7 @@ export function BestSellersSection() {
                     </div>
                   </Link>
                   <div className="px-5 pb-5">
-                    <Button variant="luxury-outline" className="w-full" disabled={!variant || variant.stock < 1} onClick={() => addItem(product.slug)}>Add to cart</Button>
+                    <Button variant="luxury-outline" className="w-full" disabled={!variant || variant.stock < 1} onClick={() => variant && addItem(product.slug, variant)}>Add to cart</Button>
                   </div>
                 </article>
               </Reveal>

@@ -4,13 +4,13 @@ import { ProductCardBase } from "@/components/ui/product-card-base";
 import { CampaignImage } from "@/components/home/campaign-image";
 import { Button } from "@/components/ui/button";
 import { useWishlist } from "@/features/wishlist/use-wishlist";
-import { catalogProducts } from "@/features/products/mock-products";
 import Link from "next/link";
 import { formatMoney } from "@/lib/format-money";
+import { CatalogDataNotice } from "@/components/product/catalog-data-notice";
 
 export function WishlistPage() {
-  const { items, toggleItem } = useWishlist();
-  const savedProducts = catalogProducts.filter((product) => items.includes(product.slug));
+  const { items, toggleItem, products, catalogIsDemo } = useWishlist();
+  const savedProducts = products.filter((product) => items.includes(product.slug));
 
   return (
     <section className="section-space page-gutter bg-ink">
@@ -18,6 +18,7 @@ export function WishlistPage() {
         <div className="mb-10">
           <p className="type-eyebrow text-gold">The private edit</p>
           <h1 className="type-heading mt-4 text-ivory">Wishlist</h1>
+          {savedProducts.length && catalogIsDemo ? <CatalogDataNotice isDemo={catalogIsDemo} /> : null}
         </div>
 
         {savedProducts.length === 0 ? (

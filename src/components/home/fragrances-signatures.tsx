@@ -1,8 +1,8 @@
 
 import { ProductGrid } from "@/components/product/product-grid";
-import { fragranceProducts } from "@/features/products/mock-products";
+import type { Product } from "@/types/product";
 
-export function FragrancesSignatures() {
+export function FragrancesSignatures({ products }: { products: Product[] }) {
   return (
               
               
@@ -17,7 +17,7 @@ export function FragrancesSignatures() {
                       View all
                     </a>
                   </div>
-                  <ProductGrid products={fragranceProducts} />
+                  <ProductGrid products={products} />
                 </div>
               </section>
         

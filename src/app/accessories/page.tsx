@@ -1,6 +1,7 @@
 import { CatalogPage } from "@/components/product/catalog-page";
-import { accessoryProducts } from "@/features/products/mock-products";
+import { getCatalogProducts } from "@/services/products-service";
 
-export default function AccessoriesPage() {
-  return <CatalogPage title="Accessories" eyebrow="The considered essentials" products={accessoryProducts} />;
+export default async function AccessoriesPage() {
+  const catalog = await getCatalogProducts();
+  return <CatalogPage title="Accessories" eyebrow="The considered essentials" products={catalog.products.filter((product) => product.category === "accessory")} isDemo={catalog.isDemo} />;
 }

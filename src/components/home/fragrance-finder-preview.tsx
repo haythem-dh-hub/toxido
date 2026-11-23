@@ -4,9 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Compass } from "lucide-react";
 import { Reveal } from "@/components/home/reveal";
-import { fragranceProducts } from "@/features/products/mock-products";
 import { formatMoney } from "@/lib/format-money";
 import type { FragranceFamily, ProductOccasion } from "@/types/product";
+import type { Product } from "@/types/product";
 
 const occasions: Array<{ value: ProductOccasion; label: string }> = [
   { value: "daily", label: "Everyday" },
@@ -26,11 +26,11 @@ const families: Array<{ value: FragranceFamily; label: string }> = [
   { value: "smoky", label: "Smoky" },
 ];
 
-export function FragranceFinderPreview() {
+export function FragranceFinderPreview({ products }: { products: Product[] }) {
   const [occasion, setOccasion] = useState<ProductOccasion | "">("");
   const [family, setFamily] = useState<FragranceFamily | "">("");
   const [hasSearched, setHasSearched] = useState(false);
-  const matches = hasSearched ? fragranceProducts
+  const matches = hasSearched ? products
     .map((product) => ({ product, score: Number(Boolean(occasion && product.fragrance?.occasions.includes(occasion))) + Number(Boolean(family && product.fragrance?.family === family)) }))
     .filter((match) => match.score > 0)
     .sort((a, b) => b.score - a.score) : [];

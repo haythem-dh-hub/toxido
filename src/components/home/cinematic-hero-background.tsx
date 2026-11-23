@@ -5,12 +5,12 @@ import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } fro
 import { useEffect, useRef } from "react";
 
 const particles = [
-  { left: "14%", top: "28%", delay: "0s", size: 2 },
-  { left: "31%", top: "18%", delay: "2.3s", size: 1.5 },
-  { left: "58%", top: "24%", delay: "4.1s", size: 2 },
+  { left: "14%", top: "28%", delay: "0s", size: 100 },
+  { left: "31%", top: "18%", delay: "2.3s", size: 150 },
+  { left: "58%", top: "24%", delay: "4.1s", size: 100 },
   { left: "79%", top: "33%", delay: "1.4s", size: 1.5 },
   { left: "88%", top: "62%", delay: "5.2s", size: 2 },
-  { left: "43%", top: "72%", delay: "3.1s", size: 1.5 },
+  { left: "43%", top: "72%", delay: "3.1s", size: 150 },
 ];
 
 export function CinematicHeroBackground({ src, alt }: { src: string; alt: string }) {

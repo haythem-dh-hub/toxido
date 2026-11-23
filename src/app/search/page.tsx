@@ -1,11 +1,13 @@
 import { ProductGrid } from "@/components/product/product-grid";
-import { catalogProducts } from "@/features/products/mock-products";
+import { CatalogDataNotice } from "@/components/product/catalog-data-notice";
+import { getCatalogProducts } from "@/services/products-service";
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
+  const catalog = await getCatalogProducts();
   const query = q.trim();
   const matches = query
-    ? catalogProducts.filter((product) => [
+    ? catalog.products.filter((product) => [
       product.name,
       product.brand,
       ...product.tags,
@@ -22,6 +24,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <div className="mb-10">
           <p className="type-eyebrow text-gold">Find your signature</p>
           <h1 className="type-heading mt-5 max-w-3xl text-ivory">{query ? `Results for “${query}”` : "Search the collection"}</h1>
+          <CatalogDataNotice isDemo={catalog.isDemo} />
         </div>
         <form action="/search" className="mb-10 flex max-w-2xl gap-3">
         <label htmlFor="product-search" className="sr-only">Search products</label>

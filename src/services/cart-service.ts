@@ -7,24 +7,23 @@ export async function createCartFromLines(lines: CartLine[]): Promise<ApiRespons
     data: {
       id: "cart-demo",
       lines,
-      subtotal: { amount: lines.reduce((sum, line) => sum + line.unitPrice.amount * line.quantity, 0), currency: "NGN" },
+      subtotal: { amount: lines.reduce((sum, line) => sum + line.unitPrice.amount * line.quantity, 0), currency: lines[0]?.unitPrice.currency ?? "TND" },
       updatedAt: new Date().toISOString(),
     },
   };
 }
 
-export async function addProductToCart(product: Product, quantity = 1): Promise<ApiResponse<CartLine>> {
-  const firstVariant = product.variants[0];
+export async function addProductToCart(product: Product, quantity = 1, selectedVariant = product.variants[0]): Promise<ApiResponse<CartLine>> {
 
   return {
     data: {
-      id: `line-${product.id}`,
+      id: `line-${product.id}-${selectedVariant?.id ?? "default"}`,
       productId: product.id,
-      variantId: firstVariant?.id ?? "default",
+      variantId: selectedVariant?.id ?? "default",
       name: product.name,
-      variantName: firstVariant?.name ?? "Signature",
+      variantName: selectedVariant?.size ?? selectedVariant?.name ?? "Signature",
       quantity,
-      unitPrice: firstVariant?.price ?? { amount: 0, currency: "NGN" },
+      unitPrice: selectedVariant?.price ?? { amount: 0, currency: "TND" },
       image: product.images[0],
     },
   };

@@ -1,10 +1,15 @@
 # TOXIDO
 
-Luxury e-commerce platform for fragrance and gentleman's accessories, built with Next.js App Router and TypeScript.
+Luxury fragrance and men's accessories storefront built with Next.js App Router, TypeScript, and Tailwind CSS. Orders are Cash on Delivery for Tunisia.
 
-## Status
+## Current implementation and launch blockers
 
-Phase 1 is complete: project foundation, strict TypeScript configuration, Tailwind setup, module directories, environment template, metadata baseline, and framework-independent commerce contracts are in place.
+- Home, catalog, product detail, search, cart, wishlist, and checkout routes are present. Cart and wishlist are browser-local; product detail, search, and cart controls use the shared catalog and commerce provider.
+- `src/features/products/mock-products.ts` and `mock-home-data.ts` are demonstration content. Their prices, descriptions, brands, and stock are not verified business data. The UI labels sample catalog values; replace them with approved product records before accepting orders.
+- COD and Flouci card checkout use server-side Supabase RPCs for database-authoritative prices and atomic inventory reservation. The Flouci path stores a pending order before creating a hosted card session and only marks it paid after a signed webhook and successful provider verification. No card details are stored.
+- With Supabase configured, catalog routes read active products/default variants from the database. Product image JSON must contain objects shaped as `{ id, alt, url, width, height }`, with a site-local image URL. Without configuration, local development shows labeled demonstration data; production shows no sample listings. Until the migration is applied and active products/default variants are entered, checkout safely refuses orders.
+- Newsletter persistence is not connected and tells the customer so. Footer social placeholders were removed. WhatsApp links appear only when a business number is configured.
+- No credentials were present in the project during this work, so live database writes, inventory behavior, WhatsApp delivery, and deployment could not be exercised here.
 
 ## Local development
 
@@ -13,16 +18,75 @@ npm install
 npm run dev
 ```
 
-Use `npm run lint` and `npm run typecheck` before changes. Copy `.env.example` to `.env.local` only when introducing the corresponding integration.
+## Environment variables
 
-## Architecture
+Copy `.env.example` to `.env.local` and set:
 
-- `src/app`: routes, layouts, metadata, and route-level composition.
-- `src/components/ui`: reusable visual primitives.
-- `src/components/{layout,home,product,cart}`: presentational assemblies.
-- `src/features`: feature-specific state and use cases.
-- `src/services`: persistence and third-party integration boundaries.
-- `src/lib`: framework and shared utilities.
-- `src/types`: stable domain and API contracts.
+- `SUPABASE_URL`: Supabase project URL.
+- `SUPABASE_ANON_KEY`: Supabase publishable/anon key used server-side for order-confirmation lookup and Auth login/session verification.
+- `SUPABASE_SERVICE_ROLE_KEY`: private service-role key used only by server-side order and authorized admin APIs. Never prefix this with `NEXT_PUBLIC_` or expose it to a browser.
+- `ADMIN_WHATSAPP_NUMBER` (optional): business number in international digits, including `216`, for example `216XXXXXXXX`.
+- `ADMIN_USER_IDS`: comma-separated Supabase Auth user UUIDs allowed into `/admin`. Empty or unset denies admin access.
+- `ADMIN_LOW_STOCK_THRESHOLD`: required non-negative integer in units per variant for the dashboard's low-stock list. No default threshold is assumed.
+- `FLOUCI_PUBLIC_KEY`: Flouci merchant public token; server-side only.
+- `FLOUCI_PRIVATE_KEY`: Flouci private token; server-side only and never prefix with `NEXT_PUBLIC_`.
+- `NEXT_PUBLIC_SITE_URL`: canonical HTTPS storefront origin used for Flouci success/failure return links and webhook URL.
+- `CRON_SECRET`: optional private token for Vercel Cron jobs to authenticate background reconciliation of abandoned sessions. Never expose to the browser.
 
-Features must not call Prisma, Cloudinary, payment, or future AI/WhatsApp SDKs directly; use a service interface so implementations stay replaceable.
+The application checks for required values at runtime. Missing or malformed settings leave order placement unavailable; the API does not report an order as saved.
+
+## Flouci card payments
+
+- Review and apply `supabase/migrations/202611190001_flouci_card_payments.sql` manually after the existing store migrations. It changes order payment metadata and replaces the COD RPC bodies to add the fixed 7,000-millime delivery fee; it is not run automatically.
+- Configure Flouci's **test** public/private tokens and the HTTPS production-preview URL in a secure environment. The integration uses Flouci's documented v2 hosted payment API and webhook v2. Do not enable production credentials until Flouci merchant onboarding and card acceptance are approved.
+- Set the webhook endpoint to the value generated by `NEXT_PUBLIC_SITE_URL` plus `/api/webhooks/flouci` in the Flouci application dashboard. Flouci itself receives this URL during each payment initialization.
+- Payment-failed/expired events release reserved inventory exactly once. If a verified success arrives after an order was already released, the handler records a reconciliation alert rather than silently selling without stock.
+- Use Flouci's test application and card scenarios, then verify payment and stock results in Supabase before requesting production activation. Never test by placing real customer orders.
+
+## Supabase setup
+
+1. Create a Supabase project in the intended region and keep database credentials private.
+2. Apply `supabase/migrations/202611120001_initial_store.sql` using the Supabase SQL Editor or Supabase CLI:
+
+   ```bash
+   supabase init
+   supabase link --project-ref YOUR_PROJECT_REF
+   supabase db push
+   ```
+
+3. Add approved products to `public.products` and their variants to `public.product_variants` from the dashboard or a private admin process. Use `category` `fragrance` or `accessory`, `currency` `TND`, TND millimes for `price_millimes` (1 TND = 1,000 millimes), and one active default variant for each active product. Do not import the sample records without business verification.
+4. Set the three Supabase environment variables in `.env.local` for local use and the matching Vercel Production/Preview environments as appropriate.
+5. Set `ADMIN_WHATSAPP_NUMBER` if the order confirmation should show a WhatsApp follow-up link. The customer must click the link; this implementation does not send unsolicited messages or claim that WhatsApp delivered a notification.
+6. Place a test COD order using a dedicated test product and verify the order, item snapshots, stock reservation, confirmation reference, and retry behavior in Supabase. Delete test data only through an intentional admin action.
+
+RLS permits public reads of active products and variants only. Orders, order items, and Flouci payment events have RLS enabled with no public table policies. Order creation and payment processing are available only to the server's Supabase service role; the anonymous confirmation function returns only reference, status, total, and non-sensitive payment state.
+
+## Admin dashboard setup
+
+- `/admin` uses Supabase Auth email/password sign-in. Enable that provider and create/verify each administrator account in Supabase Auth, copy its immutable user UUID, then set that UUID in the server-only `ADMIN_USER_IDS` environment variable. Multiple UUIDs may be comma-separated. There is no admin role table or database role claim in this project.
+- Set `ADMIN_LOW_STOCK_THRESHOLD` to the approved low-stock quantity. The dashboard does not guess a threshold.
+- The dashboard server verifies the Supabase Auth access token and checks the UUID allowlist on protected pages and every admin API request. The service-role key remains in server-only modules. Because that key bypasses RLS, never remove the server authorization checks from admin route handlers.
+- Product creation leaves the product and variants inactive. Image entries must reference existing local `/images/...` assets. Existing order-item snapshots are immutable through the admin UI; status changes only update the order status.
+- Revenue is labeled as fulfilled-order revenue and sums `orders.total_millimes` only for the existing `fulfilled` status. “Completed” in the dashboard maps to `fulfilled`; stored status values are `pending`, `confirmed`, `cancelled`, and `fulfilled`.
+- Admin sessions use an HTTP-only cookie whose maximum lifetime is one hour; when it expires, sign in again. The project has no background session-refresh flow.
+- Multi-factor authentication is not enforced by application code; enable and require it for administrator accounts in Supabase Auth if it is part of the store's security policy.
+
+## Vercel launch checklist
+
+- [ ] Replace all demonstration catalog entries and imagery with approved product information, TND prices, and confirmed stock.
+- [ ] Configure the Supabase URL, anon key, and service-role key as Vercel environment variables; keep the service-role key server-only.
+- [ ] Apply and verify the SQL migration against the production project.
+- [ ] Add active product and default-variant records and check currency/price unit (TND millimes).
+- [ ] Set the optional WhatsApp business number and verify the order-reference message.
+- [ ] Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` in a network-enabled environment (the build downloads the existing Google Fonts during compilation).
+- [ ] Submit one end-to-end COD test order and verify database persistence before enabling customer traffic.
+- [ ] Review delivery pricing and operating policies with the business; they are intentionally not invented in the UI or database.
+
+## Project structure
+
+- `src/app`: routes, API handlers, and layouts.
+- `src/components`: storefront and reusable UI components.
+- `src/features`: cart, wishlist, and demonstration catalog data.
+- `src/services`: API boundaries for commerce integrations.
+- `supabase/migrations`: PostgreSQL schema and RPC functions.
+- `src/types`: product and commerce contracts.

@@ -5,7 +5,7 @@ export type ProductSeason = "spring" | "summer" | "fall" | "winter";
 
 export interface Money {
   amount: number;
-  currency: "TND" | "USD";
+  currency: "TND" | "USD" | "NGN";
 }
 
 export interface ProductImage {

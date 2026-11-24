@@ -1,8 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useMotionValueEvent } from "framer-motion";
-import { useState } from "react";
+import { motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import { Heart, Search, ShoppingBag } from "lucide-react";
+import { useState } from "react";
 import { ActionLink } from "@/components/layout/action-link";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { DesktopNavigation } from "@/components/layout/desktop-navigation";
@@ -24,23 +24,38 @@ export function SiteHeader() {
       animate={{ backgroundColor: isScrolled ? "rgba(5,5,5,0.78)" : "rgba(5,5,5,0.96)" }}
       transition={{ duration: reduceMotion ? 0 : 0.24 }}
     >
-      <a href="#main-content" className="sr-only fixed left-4 top-4 z-[60] bg-ivory px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink focus:not-sr-only">
+      <a
+        href="#main-content"
+        className="sr-only fixed left-4 top-4 z-[70] bg-ivory px-4 py-2 text-xs font-bold uppercase tracking-wider text-ink focus:not-sr-only"
+      >
         Skip to content
       </a>
       <AnnouncementBar />
       <div className="page-gutter">
-        <motion.div animate={{ minHeight: isScrolled ? 64 : 76 }} transition={{ duration: reduceMotion ? 0 : 0.24 }} className="site-container relative grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-1 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:gap-8">
-          <div className="absolute left-1/2 -translate-x-1/2 lg:static lg:col-start-2 lg:row-start-1 lg:translate-x-0">
-            <SiteLogo />
-          </div>
-          <div className="order-1 hidden lg:col-start-1 lg:row-start-1 lg:block">
+        <motion.div
+          animate={{ minHeight: isScrolled ? 60 : 72 }}
+          transition={{ duration: reduceMotion ? 0 : 0.24 }}
+          className="site-container flex items-center justify-between gap-1 py-1.5 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:gap-4 lg:gap-4 xl:gap-8"
+        >
+          <div className="order-1 flex min-w-0 items-center lg:col-start-1 lg:row-start-1">
+            <MobileNavigation />
             <DesktopNavigation />
           </div>
-          <div className="order-3 flex items-center justify-self-end gap-1 sm:gap-2 lg:col-start-3 lg:row-start-1">
-            <div className="lg:hidden"><MobileNavigation /></div>
+
+          <div className="order-2 shrink-0 sm:col-start-2 sm:row-start-1 sm:justify-self-center">
+            <SiteLogo />
+          </div>
+
+          <div className="order-3 flex shrink-0 items-center justify-self-end gap-0.5 sm:col-start-3 sm:row-start-1 sm:gap-2">
             <ActionLink href="/search" label="Search" icon={Search} />
             <ActionLink href="/wishlist" label="Wishlist" icon={Heart} />
-            <ActionLink href="/cart" label={cartCount ? `Shopping cart, ${cartCount} items` : "Shopping cart"} icon={ShoppingBag} detail="Cart" count={cartCount} />
+            <ActionLink
+              href="/cart"
+              label={cartCount ? `Shopping cart, ${cartCount} items` : "Shopping cart"}
+              icon={ShoppingBag}
+              detail="Cart"
+              count={cartCount}
+            />
           </div>
         </motion.div>
       </div>

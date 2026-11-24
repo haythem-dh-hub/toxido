@@ -1,45 +1,46 @@
-// import Link from "next/link";
-
-// export function SiteLogo({ className }: { className?: string }) {
-//   return (
-//     <Link href="/" className={className} aria-label="TOXIDO home">
-//       <span className="text-xl font-semibold tracking-[0.26em] text-ivory sm:text-2xl" style={{ fontFamily: "var(--font-display), Georgia, serif" }}>TOXIDO</span>
-//     </Link>
-//   );
-// }
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
-export function SiteLogo({ className }: { className?: string }) {
+type SiteLogoProps = {
+  className?: string;
+  onClick?: () => void;
+};
+
+export function SiteLogo({ className, onClick }: SiteLogoProps) {
   return (
-    <Link 
-      href="/" 
-      className={`inline-flex items-center gap-3 group ${className ?? ""}`} 
+    <Link
+      href="/"
+      onClick={onClick}
+      className={`group inline-flex shrink-0 items-center gap-2 sm:gap-2.5 lg:gap-3 ${className ?? ""}`}
       aria-label="TOXIDO home"
     >
-      {/* Gold Emblem Image */}
-<div className="relative h-12 w-12 sm:h-14 sm:w-14 transition-transform duration-300 group-hover:scale-105">
+      {/* Circular Gold Emblem */}
+      <span
+        className="relative flex h-9 w-9 shrink-0 aspect-square items-center justify-center overflow-hidden rounded-full border border-gold-muted/45 bg-ink transition-transform duration-300 group-hover:scale-105 sm:h-11 sm:w-11 lg:h-12 lg:w-12"
+        style={{ aspectRatio: "1 / 1", borderRadius: "50%" }}
+      >
         <Image
           src="/images/campaign/logo-emblem.png"
           alt="TOXIDO Emblem"
           fill
-          className="object-contain"
+          sizes="(min-width: 1024px) 48px, (min-width: 640px) 44px, 36px"
+          className="object-contain object-center"
           priority
         />
-      </div>
-      
-      {/* Clean Brand Typography */}
-      <div className="flex flex-col">
-        <span 
-          className="text-xl font-bold tracking-[0.25em] text-ivory leading-none" 
+      </span>
+
+      {/* Brand Wordmark */}
+      <span className="flex flex-col justify-center">
+        <span
+          className="whitespace-nowrap text-[0.9375rem] font-bold leading-none tracking-[0.17em] text-ivory sm:text-lg sm:tracking-[0.23em] lg:text-xl lg:tracking-[0.25em]"
           style={{ fontFamily: "var(--font-display), Georgia, serif" }}
         >
           TOXIDO
         </span>
-        <span className="text-[0.6rem] tracking-[0.2em] text-gold uppercase mt-1 opacity-90">
+        <span className="mt-1 whitespace-nowrap text-[0.5rem] uppercase leading-none tracking-[0.18em] text-gold opacity-90 sm:text-[0.5625rem] sm:tracking-[0.2em] lg:text-[0.6rem]">
           Fragrance
         </span>
-      </div>
+      </span>
     </Link>
   );
 }
